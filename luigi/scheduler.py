@@ -875,7 +875,7 @@ class Scheduler(object):
 
     @rpc_method()
     def disable_worker(self, worker):
-        self._state.disable_workers(set(worker))
+        self._state.disable_workers(set([worker]))
 
     @rpc_method()
     def update_resources(self, **resources):

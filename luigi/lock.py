@@ -114,7 +114,7 @@ def acquire_for(pid_dir, num_available=1, kill_signal=None):
                   ' this one as well.')
         return False
 
-    _write_pids_file(pid_file, pids | set(my_pid))
+    _write_pids_file(pid_file, pids | set([my_pid]))
 
     return True
 
