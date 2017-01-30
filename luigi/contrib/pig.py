@@ -102,25 +102,26 @@ class PigJobTask(luigi.Task):
         def line(k, v):
             return ('%s=%s%s' % (k, v, os.linesep)).encode('utf-8')
 
-        with tempfile.NamedTemporaryFile() as param_file, tempfile.NamedTemporaryFile() as prop_file:
-            if self.pig_parameters():
-                items = six.iteritems(self.pig_parameters())
-                param_file.writelines(line(k, v) for (k, v) in items)
-                param_file.flush()
-                opts.append('-param_file')
-                opts.append(param_file.name)
+        with tempfile.NamedTemporaryFile() as param_file:
+            with tempfile.NamedTemporaryFile() as prop_file:
+                if self.pig_parameters():
+                    items = six.iteritems(self.pig_parameters())
+                    param_file.writelines(line(k, v) for (k, v) in items)
+                    param_file.flush()
+                    opts.append('-param_file')
+                    opts.append(param_file.name)
 
-            if self.pig_properties():
-                items = six.iteritems(self.pig_properties())
-                prop_file.writelines(line(k, v) for (k, v) in items)
-                prop_file.flush()
-                opts.append('-propertyFile')
-                opts.append(prop_file.name)
+                if self.pig_properties():
+                    items = six.iteritems(self.pig_properties())
+                    prop_file.writelines(line(k, v) for (k, v) in items)
+                    prop_file.flush()
+                    opts.append('-propertyFile')
+                    opts.append(prop_file.name)
 
-            cmd = [self.pig_command_path()] + opts + ["-f", self.pig_script_path()]
+                cmd = [self.pig_command_path()] + opts + ["-f", self.pig_script_path()]
 
-            logger.info(subprocess.list2cmdline(cmd))
-            yield cmd
+                logger.info(subprocess.list2cmdline(cmd))
+                yield cmd
 
     def run(self):
         with self._build_pig_cmd() as cmd:

@@ -38,18 +38,18 @@ def _partition_tasks(worker):
     Still_pending_not_ext is only used to get upstream_failure, upstream_missing_dependency and run_by_other_worker
     """
     task_history = worker._add_task_history
-    pending_tasks = {task for(task, status, ext) in task_history if status == 'PENDING'}
+    pending_tasks = set(task for(task, status, ext) in task_history if status == 'PENDING')
     set_tasks = {}
-    set_tasks["completed"] = {task for (task, status, ext) in task_history if status == 'DONE' and task in pending_tasks}
-    set_tasks["already_done"] = {task for (task, status, ext) in task_history
-                                 if status == 'DONE' and task not in pending_tasks and task not in set_tasks["completed"]}
-    set_tasks["ever_failed"] = {task for (task, status, ext) in task_history if status == 'FAILED'}
+    set_tasks["completed"] = set(task for (task, status, ext) in task_history if status == 'DONE' and task in pending_tasks)
+    set_tasks["already_done"] = set(task for (task, status, ext) in task_history
+                                 if status == 'DONE' and task not in pending_tasks and task not in set_tasks["completed"])
+    set_tasks["ever_failed"] = set(task for (task, status, ext) in task_history if status == 'FAILED')
     set_tasks["failed"] = set_tasks["ever_failed"] - set_tasks["completed"]
-    set_tasks["scheduling_error"] = {task for(task, status, ext) in task_history if status == 'UNKNOWN'}
-    set_tasks["still_pending_ext"] = {task for (task, status, ext) in task_history
-                                      if status == 'PENDING' and task not in set_tasks["ever_failed"] and task not in set_tasks["completed"] and not ext}
-    set_tasks["still_pending_not_ext"] = {task for (task, status, ext) in task_history
-                                          if status == 'PENDING' and task not in set_tasks["ever_failed"] and task not in set_tasks["completed"] and ext}
+    set_tasks["scheduling_error"] = set(task for(task, status, ext) in task_history if status == 'UNKNOWN')
+    set_tasks["still_pending_ext"] = set(task for (task, status, ext) in task_history
+                                      if status == 'PENDING' and task not in set_tasks["ever_failed"] and task not in set_tasks["completed"] and not ext)
+    set_tasks["still_pending_not_ext"] = set(task for (task, status, ext) in task_history
+                                          if status == 'PENDING' and task not in set_tasks["ever_failed"] and task not in set_tasks["completed"] and ext)
     set_tasks["run_by_other_worker"] = set()
     set_tasks["upstream_failure"] = set()
     set_tasks["upstream_missing_dependency"] = set()
@@ -135,7 +135,7 @@ def _get_str(task_dict, extra_indent):
             """
             line = prefix + '- {0} {1}(...)'.format(len(tasks), task_family)
         elif len((tasks[0].get_params())) == 1:
-            attributes = {getattr(task, tasks[0].get_params()[0][0]) for task in tasks}
+            attributes = set(getattr(task, tasks[0].get_params()[0][0]) for task in tasks)
             param_class = tasks[0].get_params()[0][1]
             first, last = _ranging_attributes(attributes, param_class)
             if first is not None and last is not None and len(attributes) > 3:
@@ -188,7 +188,7 @@ def _get_str_ranging_multiple_parameters(first, last, tasks, unique_param):
 def _get_set_of_params(tasks):
     params = {}
     for param in tasks[0].get_params():
-        params[param] = {getattr(task, param[0]) for task in tasks}
+        params[param] = set(getattr(task, param[0]) for task in tasks)
     return params
 
 
@@ -202,12 +202,12 @@ def _ranging_attributes(attributes, param_class):
     """
     Checks if there is a continuous range
     """
-    next_attributes = {param_class.next_in_enumeration(attribute) for attribute in attributes}
+    next_attributes = set(param_class.next_in_enumeration(attribute) for attribute in attributes)
     in_first = attributes.difference(next_attributes)
     in_second = next_attributes.difference(attributes)
     if len(in_first) == 1 and len(in_second) == 1:
         for x in attributes:
-            if {param_class.next_in_enumeration(x)} == in_second:
+            if set(param_class.next_in_enumeration(x)) == in_second:
                 return next(iter(in_first)), x
     return None, None
 

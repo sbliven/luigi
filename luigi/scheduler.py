@@ -806,11 +806,11 @@ class Scheduler(object):
         if status == FAILED and self._config.batch_emails:
             batched_params, _ = self._state.get_batcher(worker_id, family)
             if batched_params:
-                unbatched_params = {
-                    param: value
+                unbatched_params = dict(
+                    (param, value )
                     for param, value in six.iteritems(task.params)
                     if param not in batched_params
-                }
+                )
             else:
                 unbatched_params = task.params
             try:
@@ -860,11 +860,11 @@ class Scheduler(object):
         worker_id = kwargs['worker']
         batched_params, _ = self._state.get_batcher(worker_id, family)
         if batched_params:
-            unbatched_params = {
-                param: value
+            unbatched_params = dict(
+                (param, value )
                 for param, value in six.iteritems(params)
                 if param not in batched_params
-            }
+            )
         else:
             unbatched_params = params
         self._email_batcher.add_scheduling_fail(task_name, family, unbatched_params, expl, owners)
@@ -875,7 +875,7 @@ class Scheduler(object):
 
     @rpc_method()
     def disable_worker(self, worker):
-        self._state.disable_workers({worker})
+        self._state.disable_workers(set(worker))
 
     @rpc_method()
     def update_resources(self, **resources):
@@ -885,7 +885,7 @@ class Scheduler(object):
 
     def _generate_retry_policy(self, task_retry_policy_dict):
         retry_policy_dict = self._config._get_retry_policy()._asdict()
-        retry_policy_dict.update({k: v for k, v in six.iteritems(task_retry_policy_dict) if v is not None})
+        retry_policy_dict.update(dict((k,v) for k, v in six.iteritems(task_retry_policy_dict) if v is not None))
         return RetryPolicy(**retry_policy_dict)
 
     def _has_resources(self, needed_resources, used_resources):
@@ -926,11 +926,11 @@ class Scheduler(object):
         return True
 
     def _reset_orphaned_batch_running_tasks(self, worker_id):
-        running_batch_ids = {
+        running_batch_ids = set(
             task.batch_id
             for task in self._state.get_active_tasks_by_status(RUNNING)
             if task.worker_running == worker_id
-        }
+        )
         orphaned_tasks = [
             task for task in self._state.get_active_tasks_by_status(BATCH_RUNNING)
             if task.worker_running == worker_id and task.batch_id not in running_batch_ids
@@ -1061,13 +1061,14 @@ class Scheduler(object):
                         worker_id, task.family)
                     if batch_param_names and task.is_batchable():
                         try:
-                            batched_params = {
-                                name: [task.params[name]] for name in batch_param_names
-                            }
-                            unbatched_params = {
-                                name: value for name, value in task.params.items()
+                            batched_params = dict(
+                                (name, [task.params[name]]) for name in batch_param_names
+                            )
+                            unbatched_params = dict(
+                                (name, value)
+                                for name, value in task.params.items()
                                 if name not in batched_params
-                            }
+                            )
                             batched_tasks.append(task)
                         except KeyError:
                             batched_params, unbatched_params = None, None
