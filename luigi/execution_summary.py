@@ -42,14 +42,14 @@ def _partition_tasks(worker):
     set_tasks = {}
     set_tasks["completed"] = set(task for (task, status, ext) in task_history if status == 'DONE' and task in pending_tasks)
     set_tasks["already_done"] = set(task for (task, status, ext) in task_history
-                                 if status == 'DONE' and task not in pending_tasks and task not in set_tasks["completed"])
+                                    if status == 'DONE' and task not in pending_tasks and task not in set_tasks["completed"])
     set_tasks["ever_failed"] = set(task for (task, status, ext) in task_history if status == 'FAILED')
     set_tasks["failed"] = set_tasks["ever_failed"] - set_tasks["completed"]
     set_tasks["scheduling_error"] = set(task for(task, status, ext) in task_history if status == 'UNKNOWN')
     set_tasks["still_pending_ext"] = set(task for (task, status, ext) in task_history
-                                      if status == 'PENDING' and task not in set_tasks["ever_failed"] and task not in set_tasks["completed"] and not ext)
+                                         if status == 'PENDING' and task not in set_tasks["ever_failed"] and task not in set_tasks["completed"] and not ext)
     set_tasks["still_pending_not_ext"] = set(task for (task, status, ext) in task_history
-                                          if status == 'PENDING' and task not in set_tasks["ever_failed"] and task not in set_tasks["completed"] and ext)
+                                             if status == 'PENDING' and task not in set_tasks["ever_failed"] and task not in set_tasks["completed"] and ext)
     set_tasks["run_by_other_worker"] = set()
     set_tasks["upstream_failure"] = set()
     set_tasks["upstream_missing_dependency"] = set()

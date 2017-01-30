@@ -807,7 +807,7 @@ class Scheduler(object):
             batched_params, _ = self._state.get_batcher(worker_id, family)
             if batched_params:
                 unbatched_params = dict(
-                    (param, value )
+                    (param, value)
                     for param, value in six.iteritems(task.params)
                     if param not in batched_params
                 )
@@ -861,7 +861,7 @@ class Scheduler(object):
         batched_params, _ = self._state.get_batcher(worker_id, family)
         if batched_params:
             unbatched_params = dict(
-                (param, value )
+                (param, value)
                 for param, value in six.iteritems(params)
                 if param not in batched_params
             )
@@ -885,7 +885,7 @@ class Scheduler(object):
 
     def _generate_retry_policy(self, task_retry_policy_dict):
         retry_policy_dict = self._config._get_retry_policy()._asdict()
-        retry_policy_dict.update(dict((k,v) for k, v in six.iteritems(task_retry_policy_dict) if v is not None))
+        retry_policy_dict.update(dict((k, v) for k, v in six.iteritems(task_retry_policy_dict) if v is not None))
         return RetryPolicy(**retry_policy_dict)
 
     def _has_resources(self, needed_resources, used_resources):

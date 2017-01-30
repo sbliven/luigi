@@ -165,7 +165,7 @@ class Opener(object):
 
         # Remove any unexpected keywords from the query string.
         if cls.filter_kwargs:
-            query = dict( (x,y) for x, y in query.items() if x in cls.allowed_kwargs)
+            query = dict((x, y) for x, y in query.items() if x in cls.allowed_kwargs)
 
         for key, vals in query.items():
             # Multiple values of the same name could be passed use first

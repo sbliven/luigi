@@ -420,7 +420,7 @@ class MixinBigQueryBulkComplete(object):
         # Query the available tables for all datasets
         client = tasks_with_params[0][0].output().client
         available_datasets = filter(client.dataset_exists, datasets)
-        available_tables = dict( (d, set(client.list_tables(d))) for d in available_datasets)
+        available_tables = dict((d, set(client.list_tables(d))) for d in available_datasets)
 
         # Return parameter_tuples belonging to available tables
         for t, p in tasks_with_params:

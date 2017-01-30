@@ -155,7 +155,7 @@ class BatchNotifier(object):
 
     def _email_body(self, fail_counts, disable_counts, scheduling_counts, fail_expls):
         expls = dict(
-            ( (name, fail_count, disable_counts[name], scheduling_counts[name]), self._expl_body(fail_expls[name]) )
+            ((name, fail_count, disable_counts[name], scheduling_counts[name]), self._expl_body(fail_expls[name]))
             for name, fail_count in six.iteritems(fail_counts)
         )
         expl_groups = sorted(self._task_expl_groups(expls), key=self._expls_key)
