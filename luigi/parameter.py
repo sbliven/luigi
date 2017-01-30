@@ -197,11 +197,11 @@ class Parameter(object):
             yield (self._parse_or_no_value(found), None)
         yield (self._get_value_from_config(task_name, param_name), None)
         yield (self._get_value_from_config(task_name, param_name.replace('_', '-')),
-               'Configuration [{}] {} (with dashes) should be avoided. Please use underscores.'.format(
+               'Configuration [{0}] {1} (with dashes) should be avoided. Please use underscores.'.format(
                task_name, param_name))
         if self._config_path:
             yield (self._get_value_from_config(self._config_path['section'], self._config_path['name']),
-                   'The use of the configuration [{}] {} is deprecated. Please use [{}] {}'.format(
+                   'The use of the configuration [{0}] {1} is deprecated. Please use [{2}] {3}'.format(
                    self._config_path['section'], self._config_path['name'], task_name, param_name))
         yield (self._default, None)
 
@@ -702,7 +702,7 @@ class TimeDeltaParameter(Parameter):
         hours = x.seconds // 3600
         minutes = (x.seconds % 3600) // 60
         seconds = (x.seconds % 3600) % 60
-        result = "{} w {} d {} h {} m {} s".format(weeks, days, hours, minutes, seconds)
+        result = "{0} w {1} d {2} h {3} m {4} s".format(weeks, days, hours, minutes, seconds)
         return result
 
 

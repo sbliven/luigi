@@ -68,7 +68,7 @@ class DataprocBaseTask(_DataprocBaseTask):
         }}
         self.submit_job(job_config)
         self._job_name = os.path.basename(self._job['sparkJob']['mainClass'])
-        logger.info("Submitted new dataproc job:{} id:{}".format(self._job_name, self._job_id))
+        logger.info("Submitted new dataproc job:{0} id:{1}".format(self._job_name, self._job_id))
         return self._job
 
     def submit_pyspark_job(self, job_file, extra_files=[], job_args=[]):
@@ -84,7 +84,7 @@ class DataprocBaseTask(_DataprocBaseTask):
         }}
         self.submit_job(job_config)
         self._job_name = os.path.basename(self._job['pysparkJob']['mainPythonFileUri'])
-        logger.info("Submitted new dataproc job:{} id:{}".format(self._job_name, self._job_id))
+        logger.info("Submitted new dataproc job:{0} id:{1}".format(self._job_name, self._job_id))
         return self._job
 
     def wait_for_job(self):
@@ -94,7 +94,7 @@ class DataprocBaseTask(_DataprocBaseTask):
             job_result = self.dataproc_client.projects().regions().jobs()\
                 .get(projectId=self.gcloud_project_id, region=self.dataproc_region, jobId=self._job_id).execute()
             status = job_result['status']['state']
-            logger.info("Current dataproc status: {} job:{} id:{}".format(status, self._job_name, self._job_id))
+            logger.info("Current dataproc status: {0} job:{1} id:{2}".format(status, self._job_name, self._job_id))
             if status == 'DONE':
                 break
             if status == 'ERROR':
@@ -162,7 +162,7 @@ class CreateDataprocClusterTask(_DataprocBaseTask):
                 raise e  # Something's wrong ...
 
     def run(self):
-        base_uri = "https://www.googleapis.com/compute/v1/projects/{}".format(self.gcloud_project_id)
+        base_uri = "https://www.googleapis.com/compute/v1/projects/{0}".format(self.gcloud_project_id)
         software_config = {"imageVersion": self.image_version} if self.image_version else {}
 
         cluster_conf = {
@@ -208,7 +208,7 @@ class CreateDataprocClusterTask(_DataprocBaseTask):
             time.sleep(10)
             cluster_status = self._get_cluster_status()
             status = cluster_status['status']['state']
-            logger.info("Creating new dataproc cluster: {} status: {}".format(self.dataproc_cluster_name, status))
+            logger.info("Creating new dataproc cluster: {0} status: {1}".format(self.dataproc_cluster_name, status))
             if status == 'RUNNING':
                 break
             if status == 'ERROR':
@@ -246,6 +246,6 @@ class DeleteDataprocClusterTask(_DataprocBaseTask):
             time.sleep(10)
             status = self._get_cluster_status()
             if status is None:
-                logger.info("Finished shutting down cluster: {}".format(self.dataproc_cluster_name))
+                logger.info("Finished shutting down cluster: {0}".format(self.dataproc_cluster_name))
                 break
-            logger.info("Shutting down cluster: {} current status: {}".format(self.dataproc_cluster_name, status['status']['state']))
+            logger.info("Shutting down cluster: {0} current status: {1}".format(self.dataproc_cluster_name, status['status']['state']))

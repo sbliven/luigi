@@ -168,7 +168,7 @@ class FileSystem(object):
         implementation.  It will just do ``move()`` if the file doesn't
         ``exists()`` already.
         """
-        warnings.warn("File system {} client doesn't support atomic mv.".format(self.__class__.__name__))
+        warnings.warn("File system {0} client doesn't support atomic mv.".format(self.__class__.__name__))
         if self.exists(dest):
             raise FileAlreadyExists()
         self.move(path, dest)
@@ -281,7 +281,7 @@ class FileSystemTarget(Target):
             def __init__(self):
                 num = random.randrange(0, 1e10)
                 slashless_path = self.target.path.rstrip('/').rstrip("\\")
-                self._temp_path = '{}-luigi-tmp-{:010}{}'.format(
+                self._temp_path = '{0}-luigi-tmp-{:010}{1}'.format(
                     slashless_path,
                     num,
                     self.target._trailing_slash())

@@ -132,7 +132,7 @@ class BigQueryClient(object):
             if dataset.location is not None:
                 fetched_location = response.get('location')
                 if dataset.location != fetched_location:
-                    raise Exception('''Dataset already exists with regional location {}. Can't use {}.'''.format(
+                    raise Exception('''Dataset already exists with regional location {0}. Can't use {1}.'''.format(
                         fetched_location if fetched_location is not None else 'unspecified',
                         dataset.location))
 
@@ -173,7 +173,7 @@ class BigQueryClient(object):
         """
 
         try:
-            body['id'] = '{}:{}'.format(dataset.project_id, dataset.dataset_id)
+            body['id'] = '{0}:{1}'.format(dataset.project_id, dataset.dataset_id)
             if dataset.location is not None:
                 body['location'] = dataset.location
             self.client.datasets().insert(projectId=dataset.project_id, body=body).execute()
@@ -329,7 +329,7 @@ class BigQueryClient(object):
             status = self.client.jobs().get(projectId=project_id, jobId=job_id).execute(num_retries=10)
             if status['status']['state'] == 'DONE':
                 if status['status'].get('errorResult'):
-                    raise Exception('BigQuery job failed: {}'.format(status['status']['errorResult']))
+                    raise Exception('BigQuery job failed: {0}'.format(status['status']['errorResult']))
                 return
 
             logger.info('Waiting for job %s:%s to complete...', project_id, job_id)

@@ -576,9 +576,9 @@ class Worker(object):
         notifications.send_error_email(formatted_subject, message, task.owner_email)
 
     def _handle_task_load_error(self, exception, task_ids):
-        msg = 'Cannot find task(s) sent by scheduler: {}'.format(','.join(task_ids))
+        msg = 'Cannot find task(s) sent by scheduler: {0}'.format(','.join(task_ids))
         logger.exception(msg)
-        subject = 'Luigi: {}'.format(msg)
+        subject = 'Luigi: {0}'.format(msg)
         error_message = notifications.wrap_traceback(exception)
         for task_id in task_ids:
             self._add_task(
@@ -894,11 +894,11 @@ class Worker(object):
         """
         for task_id, p in six.iteritems(self._running_tasks):
             if not p.is_alive() and p.exitcode:
-                error_msg = 'Task {} died unexpectedly with exit code {}'.format(task_id, p.exitcode)
+                error_msg = 'Task {0} died unexpectedly with exit code {1}'.format(task_id, p.exitcode)
                 p.task.trigger_event(Event.PROCESS_FAILURE, p.task, error_msg)
             elif p.timeout_time is not None and time.time() > float(p.timeout_time) and p.is_alive():
                 p.terminate()
-                error_msg = 'Task {} timed out after {} seconds and was terminated.'.format(task_id, p.task.worker_timeout)
+                error_msg = 'Task {0} timed out after {1} seconds and was terminated.'.format(task_id, p.task.worker_timeout)
                 p.task.trigger_event(Event.TIMEOUT, p.task, error_msg)
             else:
                 continue

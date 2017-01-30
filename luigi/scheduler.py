@@ -110,9 +110,9 @@ def rpc_method(**request_args):
             actual_args.update(dict(zip(all_args, args)))
             actual_args.update(kwargs)
             if not all(arg in actual_args for arg in required_args):
-                raise TypeError('{} takes {} arguments ({} given)'.format(
+                raise TypeError('{0} takes {1} arguments ({2} given)'.format(
                     fn_name, len(all_args), len(actual_args)))
-            return self._request('/api/{}'.format(fn_name), actual_args, **request_args)
+            return self._request('/api/{0}'.format(fn_name), actual_args, **request_args)
 
         RPC_METHODS[fn_name] = rpc_func
         return fn
@@ -334,8 +334,8 @@ class Task(object):
 
     @property
     def pretty_id(self):
-        param_str = ', '.join('{}={}'.format(key, value) for key, value in sorted(self.params.items()))
-        return '{}({})'.format(self.family, param_str)
+        param_str = ', '.join('{0}={1}'.format(key, value) for key, value in sorted(self.params.items()))
+        return '{0}({1})'.format(self.family, param_str)
 
 
 class Worker(object):

@@ -122,7 +122,7 @@ class Register(abc.ABCMeta):
         if not cls.get_task_namespace():
             return cls.__name__
         else:
-            return "{}.{}".format(cls.get_task_namespace(), cls.__name__)
+            return "{0}.{1}".format(cls.get_task_namespace(), cls.__name__)
 
     @classmethod
     def _get_reg(cls):
