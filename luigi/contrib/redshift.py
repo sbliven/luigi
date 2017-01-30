@@ -290,7 +290,7 @@ class S3CopyToTable(rdbms.CopyToTable):
             cred_str = 'aws_access_key_id={key};aws_secret_access_key={secret}{opt}'.format(
                 key=self.aws_access_key_id,
                 secret=self.aws_secret_access_key,
-                opt=';token={}'.format(self.aws_session_token) if self.aws_session_token else ''
+                opt=';token={0}'.format(self.aws_session_token) if self.aws_session_token else ''
             )
         else:
             raise NotImplementedError("Missing Credentials. "
