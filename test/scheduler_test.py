@@ -227,7 +227,7 @@ class SchedulerIoTest(unittest.TestCase):
 
 class SchedulerWorkerTest(unittest.TestCase):
     def get_pending_ids(self, worker, state):
-        return {task.id for task in worker.get_tasks(state, 'PENDING')}
+        return set(task.id for task in worker.get_tasks(state, 'PENDING'))
 
     def test_get_pending_tasks_with_many_done_tasks(self):
         sch = luigi.scheduler.Scheduler()
@@ -238,7 +238,7 @@ class SchedulerWorkerTest(unittest.TestCase):
 
         scheduler_state = sch._state
         trivial_worker = scheduler_state.get_worker('TRIVIAL')
-        self.assertEqual({'B'}, self.get_pending_ids(trivial_worker, scheduler_state))
+        self.assertEqual(set(['B']), self.get_pending_ids(trivial_worker, scheduler_state))
 
         non_trivial_worker = scheduler_state.get_worker('NON_TRIVIAL')
-        self.assertEqual({'A'}, self.get_pending_ids(non_trivial_worker, scheduler_state))
+        self.assertEqual(set(['A']), self.get_pending_ids(non_trivial_worker, scheduler_state))

@@ -229,8 +229,8 @@ def send_email_ses(sender, subject, message, recipients, image_png):
 
     logger.debug(("Message sent to SES.\nMessageId: {0},\nRequestId: {1},\n"
                  "HTTPSStatusCode: {2}").format(response['MessageId'],
-                                               response['ResponseMetadata']['RequestId'],
-                                               response['ResponseMetadata']['HTTPStatusCode']))
+                                                response['ResponseMetadata']['RequestId'],
+                                                response['ResponseMetadata']['HTTPStatusCode']))
 
 
 def send_email_sendgrid(sender, subject, message, recipients, image_png):
@@ -285,8 +285,8 @@ def send_email_sns(sender, subject, message, topic_ARN, image_png):
 
     logger.debug(("Message sent to SNS.\nMessageId: {0},\nRequestId: {1},\n"
                  "HTTPSStatusCode: {2}").format(response['MessageId'],
-                                               response['ResponseMetadata']['RequestId'],
-                                               response['ResponseMetadata']['HTTPStatusCode']))
+                                                response['ResponseMetadata']['RequestId'],
+                                                response['ResponseMetadata']['HTTPStatusCode']))
 
 
 def send_email(subject, message, sender, recipients, image_png=None):

@@ -105,8 +105,8 @@ class ServerTest(ServerTestBase):
         def _set(name):
             return set(headers[name].replace(" ", "").split(","))
 
-        self.assertSetEqual(_set("Access-Control-Allow-Headers"), {"Content-Type", "Accept", "Authorization", "Origin"})
-        self.assertSetEqual(_set("Access-Control-Allow-Methods"), {"GET", "OPTIONS"})
+        self.assertSetEqual(_set("Access-Control-Allow-Headers"), set(["Content-Type", "Accept", "Authorization", "Origin"]))
+        self.assertSetEqual(_set("Access-Control-Allow-Methods"), set(["GET", "OPTIONS"]))
         self.assertEqual(headers["Access-Control-Allow-Origin"], "*")
 
 

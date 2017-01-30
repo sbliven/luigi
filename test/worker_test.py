@@ -124,10 +124,11 @@ class WorkerTest(LuigiTestCase):
     def run(self, result=None):
         self.sch = Scheduler(retry_delay=100, remove_delay=1000, worker_disconnect_delay=10)
         self.time = time.time
-        with Worker(scheduler=self.sch, worker_id='X') as w, Worker(scheduler=self.sch, worker_id='Y') as w2:
-            self.w = w
-            self.w2 = w2
-            super(WorkerTest, self).run(result)
+        with Worker(scheduler=self.sch, worker_id='X') as w:
+            with Worker(scheduler=self.sch, worker_id='Y') as w2:
+                self.w = w
+                self.w2 = w2
+                super(WorkerTest, self).run(result)
 
         if time.time != self.time:
             time.time = self.time
@@ -479,17 +480,18 @@ class WorkerTest(LuigiTestCase):
         self.assertEqual(str(eb), "B()")
 
         sch = Scheduler(retry_delay=100, remove_delay=1000, worker_disconnect_delay=10)
-        with Worker(scheduler=sch, worker_id='X') as w, Worker(scheduler=sch, worker_id='Y') as w2:
-            self.assertTrue(w.add(b))
-            self.assertTrue(w2.add(eb))
-            logging.debug("RUNNING BROKEN WORKER")
-            self.assertTrue(w2.run())
-            self.assertFalse(a.complete())
-            self.assertFalse(b.complete())
-            logging.debug("RUNNING FUNCTIONAL WORKER")
-            self.assertTrue(w.run())
-            self.assertTrue(a.complete())
-            self.assertTrue(b.complete())
+        with Worker(scheduler=sch, worker_id='X') as w:
+            with Worker(scheduler=sch, worker_id='Y') as w2:
+                self.assertTrue(w.add(b))
+                self.assertTrue(w2.add(eb))
+                logging.debug("RUNNING BROKEN WORKER")
+                self.assertTrue(w2.run())
+                self.assertFalse(a.complete())
+                self.assertFalse(b.complete())
+                logging.debug("RUNNING FUNCTIONAL WORKER")
+                self.assertTrue(w.run())
+                self.assertTrue(a.complete())
+                self.assertTrue(b.complete())
 
     def test_interleaved_workers2(self):
         # two tasks without dependencies, one external, one not
@@ -504,14 +506,15 @@ class WorkerTest(LuigiTestCase):
         self.assertEqual(str(eb), "B()")
 
         sch = Scheduler(retry_delay=100, remove_delay=1000, worker_disconnect_delay=10)
-        with Worker(scheduler=sch, worker_id='X') as w, Worker(scheduler=sch, worker_id='Y') as w2:
-            self.assertTrue(w2.add(eb))
-            self.assertTrue(w.add(b))
+        with Worker(scheduler=sch, worker_id='X') as w:
+            with Worker(scheduler=sch, worker_id='Y') as w2:
+                self.assertTrue(w2.add(eb))
+                self.assertTrue(w.add(b))
 
-            self.assertTrue(w2.run())
-            self.assertFalse(b.complete())
-            self.assertTrue(w.run())
-            self.assertTrue(b.complete())
+                self.assertTrue(w2.run())
+                self.assertFalse(b.complete())
+                self.assertTrue(w.run())
+                self.assertTrue(b.complete())
 
     def test_interleaved_workers3(self):
         class A(DummyTask):
@@ -763,7 +766,7 @@ class WorkerTest(LuigiTestCase):
             # only task number 9 should run
             self.assertFalse(task.has_run and task.value < 9)
 
-        self.assertEqual({task.task_id for task in tasks}, set(self.sch.task_list('FAILED', '')))
+        self.assertEqual(set(task.task_id for task in tasks), set(self.sch.task_list('FAILED', '')))
 
     def test_gracefully_handle_batch_method_failure(self):
         class BadBatchMethodTask(DummyTask):
@@ -797,7 +800,7 @@ class WorkerTest(LuigiTestCase):
         self.assertFalse(self.w.run())
 
         failed_ids = set(self.sch.task_list('FAILED', ''))
-        self.assertEqual({task.task_id for task in tasks}, failed_ids)
+        self.assertEqual(set(task.task_id for task in tasks), failed_ids)
         self.assertTrue(all(self.sch.fetch_error(task_id)['error'] for task_id in failed_ids))
 
 
@@ -815,30 +818,31 @@ class WorkerKeepAliveTests(LuigiTestCase):
         })
         w1 = Worker(worker_id='w1', **worker_args)
         w2 = Worker(worker_id='w2', **worker_args)
-        with w1 as worker1, w2 as worker2:
-            worker1.add(DummyTask())
-            t1 = threading.Thread(target=worker1.run)
-            t1.start()
+        with w1 as worker1:
+            with w2 as worker2:
+                worker1.add(DummyTask())
+                t1 = threading.Thread(target=worker1.run)
+                t1.start()
 
-            worker2.add(DummyTask())
-            t2 = threading.Thread(target=worker2.run)
-            t2.start()
+                worker2.add(DummyTask())
+                t2 = threading.Thread(target=worker2.run)
+                t2.start()
 
-            if task_status:
-                self.sch.add_task(worker='DummyWorker', task_id=DummyTask().task_id, status=task_status)
+                if task_status:
+                    self.sch.add_task(worker='DummyWorker', task_id=DummyTask().task_id, status=task_status)
 
-            # allow workers to run their get work loops a few times
-            time.sleep(0.1)
+                # allow workers to run their get work loops a few times
+                time.sleep(0.1)
 
-            try:
-                self.assertEqual(first_should_live, t1.isAlive())
-                self.assertEqual(second_should_live, t2.isAlive())
+                try:
+                    self.assertEqual(first_should_live, t1.isAlive())
+                    self.assertEqual(second_should_live, t2.isAlive())
 
-            finally:
-                # mark the task done so the worker threads will die
-                self.sch.add_task(worker='DummyWorker', task_id=DummyTask().task_id, status='DONE')
-                t1.join()
-                t2.join()
+                finally:
+                    # mark the task done so the worker threads will die
+                    self.sch.add_task(worker='DummyWorker', task_id=DummyTask().task_id, status='DONE')
+                    t1.join()
+                    t2.join()
 
     def test_no_keep_alive(self):
         self._worker_keep_alive_test(
@@ -1468,7 +1472,7 @@ class MultipleWorkersTest(unittest.TestCase):
             pid = pids[0]
 
             def is_running():
-                return pid in {p.pid for p in psutil.Process().children()}
+                return pid in set(p.pid for p in psutil.Process().children())
 
             self.assertTrue(is_running())
         self.assertFalse(is_running())

@@ -63,10 +63,10 @@ class ExecutionSummaryTest(LuigiTestCase):
 
         self.run_task(Foo())
         d = self.summary_dict()
-        self.assertEqual({Bar(num=1)}, d['already_done'])
-        self.assertEqual({Bar(num=2), Bar(num=3), Bar(num=4)}, d['completed'])
-        self.assertEqual({Bar(num=0)}, d['failed'])
-        self.assertEqual({Foo()}, d['upstream_failure'])
+        self.assertEqual(set([Bar(num=1)]), d['already_done'])
+        self.assertEqual(set([Bar(num=2), Bar(num=3), Bar(num=4)]), d['completed'])
+        self.assertEqual(set([Bar(num=0)]), d['failed'])
+        self.assertEqual(set([Foo()]), d['upstream_failure'])
         self.assertFalse(d['upstream_missing_dependency'])
         self.assertFalse(d['run_by_other_worker'])
         self.assertFalse(d['still_pending_ext'])
@@ -113,14 +113,14 @@ class ExecutionSummaryTest(LuigiTestCase):
 
         self.run_task(MaxBatches())
         d = self.summary_dict()
-        expected_completed = {
+        expected_completed = set((
             MaxBatchTask(0),
             MaxBatchTask(1),
             MaxBatchTask(2),
             MaxBatchTask(3),
             MaxBatchTask(4),
             MaxBatches(),
-        }
+        ))
         self.assertEqual(expected_completed, d['completed'])
 
     def test_batch_fail(self):
@@ -139,13 +139,13 @@ class ExecutionSummaryTest(LuigiTestCase):
 
         self.run_task(MaxBatches())
         d = self.summary_dict()
-        expected_failed = {
+        expected_failed = set((
             MaxBatchFailTask(0),
             MaxBatchFailTask(1),
             MaxBatchFailTask(2),
             MaxBatchFailTask(3),
             MaxBatchFailTask(4),
-        }
+        ))
         self.assertEqual(expected_failed, d['failed'])
 
     def test_check_complete_error(self):
@@ -163,9 +163,9 @@ class ExecutionSummaryTest(LuigiTestCase):
 
         self.run_task(Foo())
         d = self.summary_dict()
-        self.assertEqual({Foo()}, d['still_pending_not_ext'])
-        self.assertEqual({Foo()}, d['upstream_scheduling_error'])
-        self.assertEqual({Bar()}, d['scheduling_error'])
+        self.assertEqual(set([Foo()]), d['still_pending_not_ext'])
+        self.assertEqual(set([Foo()]), d['upstream_scheduling_error'])
+        self.assertEqual(set([Bar()]), d['scheduling_error'])
         self.assertFalse(d['not_run'])
         self.assertFalse(d['already_done'])
         self.assertFalse(d['completed'])
@@ -211,9 +211,9 @@ class ExecutionSummaryTest(LuigiTestCase):
             self.run_task(Foo())
 
         d = self.summary_dict()
-        self.assertEqual({Foo()}, d['still_pending_not_ext'])
-        self.assertEqual({Foo()}, d['not_run'])
-        self.assertEqual({Bar()}, d['already_done'])
+        self.assertEqual(set([Foo()]), d['still_pending_not_ext'])
+        self.assertEqual(set([Foo()]), d['not_run'])
+        self.assertEqual(set([Bar()]), d['already_done'])
         self.assertFalse(d['upstream_scheduling_error'])
         self.assertFalse(d['scheduling_error'])
         self.assertFalse(d['completed'])
@@ -258,7 +258,7 @@ class ExecutionSummaryTest(LuigiTestCase):
 
         self.run_task(Foo())
         d = self.summary_dict()
-        self.assertEqual({Foo()}, d['scheduling_error'])
+        self.assertEqual(set([Foo()]), d['scheduling_error'])
         self.assertFalse(d['upstream_scheduling_error'])
         self.assertFalse(d['not_run'])
         self.assertFalse(d['already_done'])
@@ -319,8 +319,8 @@ class ExecutionSummaryTest(LuigiTestCase):
 
         self.run_task(Foo())
         d = self.summary_dict()
-        self.assertEqual({Bat(1), Wut(1), Biz(1), Bar(0), Bar(1), Bar(2), Bar(3)}, d['already_done'])
-        self.assertEqual({Foo()}, d['completed'])
+        self.assertEqual(set([Bat(1), Wut(1), Biz(1), Bar(0), Bar(1), Bar(2), Bar(3)]), d['already_done'])
+        self.assertEqual(set([Foo()]), d['completed'])
         self.assertFalse(d['failed'])
         self.assertFalse(d['upstream_failure'])
         self.assertFalse(d['upstream_missing_dependency'])
@@ -370,13 +370,13 @@ class ExecutionSummaryTest(LuigiTestCase):
 
         self.run_task(Foo())
         d = self.summary_dict()
-        self.assertEqual({ExternalBar(num=1)}, d['already_done'])
-        self.assertEqual({Bar(num=1), Bar(num=2), Bar(num=3), Bar(num=4)}, d['completed'])
-        self.assertEqual({Bar(num=0)}, d['failed'])
-        self.assertEqual({Foo()}, d['upstream_failure'])
-        self.assertEqual({Foo()}, d['upstream_missing_dependency'])
+        self.assertEqual(set([ExternalBar(num=1)]), d['already_done'])
+        self.assertEqual(set([Bar(num=1), Bar(num=2), Bar(num=3), Bar(num=4)]), d['completed'])
+        self.assertEqual(set([Bar(num=0)]), d['failed'])
+        self.assertEqual(set([Foo()]), d['upstream_failure'])
+        self.assertEqual(set([Foo()]), d['upstream_missing_dependency'])
         self.assertFalse(d['run_by_other_worker'])
-        self.assertEqual({ExternalBar(num=0), ExternalBar(num=2), ExternalBar(num=3), ExternalBar(num=4)}, d['still_pending_ext'])
+        self.assertEqual(set([ExternalBar(num=0), ExternalBar(num=2), ExternalBar(num=3), ExternalBar(num=4)]), d['still_pending_ext'])
         s = self.summary()
         self.assertIn('\n* 1 present dependencies were encountered:\n    - 1 ExternalBar(num=1)\n', s)
         self.assertIn('\n* 4 ran successfully:\n    - 4 Bar(num=1...4)\n', s)
@@ -415,8 +415,8 @@ class ExecutionSummaryTest(LuigiTestCase):
         lock1.release()
         t1.join()
         d = self.summary_dict()
-        self.assertEqual({LockTask()}, d['run_by_other_worker'])
-        self.assertEqual({ParentTask()}, d['upstream_run_by_other_worker'])
+        self.assertEqual(set([LockTask()]), d['run_by_other_worker'])
+        self.assertEqual(set([ParentTask()]), d['upstream_run_by_other_worker'])
         s = self.summary()
         self.assertIn('\nScheduled 2 tasks of which:\n'
                       '* 2 were left pending, among these:\n'
@@ -453,7 +453,7 @@ class ExecutionSummaryTest(LuigiTestCase):
         self.assertFalse(d['already_done'])
         self.assertFalse(d['completed'])
         self.assertFalse(d['not_run'])
-        self.assertEqual({AlreadyRunningTask()}, d['run_by_other_worker'])
+        self.assertEqual(set([AlreadyRunningTask()]), d['run_by_other_worker'])
 
     def test_not_run(self):
         class AlreadyRunningTask(luigi.Task):
@@ -476,7 +476,7 @@ class ExecutionSummaryTest(LuigiTestCase):
         self.assertFalse(d['already_done'])
         self.assertFalse(d['completed'])
         self.assertFalse(d['run_by_other_worker'])
-        self.assertEqual({AlreadyRunningTask()}, d['not_run'])
+        self.assertEqual(set([AlreadyRunningTask()]), d['not_run'])
 
         s = self.summary()
         self.assertIn('\nScheduled 1 tasks of which:\n'
@@ -500,7 +500,7 @@ class ExecutionSummaryTest(LuigiTestCase):
         self.assertFalse(d['already_done'])
         self.assertFalse(d['completed'])
         self.assertFalse(d['run_by_other_worker'])
-        self.assertEqual({SomeTask()}, d['not_run'])
+        self.assertEqual(set([SomeTask()]), d['not_run'])
 
     def test_somebody_else_disables_task(self):
         class SomeTask(luigi.Task):
@@ -521,7 +521,7 @@ class ExecutionSummaryTest(LuigiTestCase):
         self.assertFalse(d['already_done'])
         self.assertFalse(d['completed'])
         self.assertFalse(d['run_by_other_worker'])
-        self.assertEqual({SomeTask()}, d['not_run'])
+        self.assertEqual(set([SomeTask()]), d['not_run'])
 
     def test_larger_tree(self):
 
@@ -573,13 +573,13 @@ class ExecutionSummaryTest(LuigiTestCase):
         self.run_task(Foo())
         d = self.summary_dict()
 
-        self.assertEqual({Cat(num=1)}, d['already_done'])
-        self.assertEqual({Cat(num=0), Bar(num=1)}, d['completed'])
-        self.assertEqual({Cat(num=2)}, d['failed'])
-        self.assertEqual({Dog(), Bar(num=2), Foo()}, d['upstream_failure'])
-        self.assertEqual({Bar(num=0), Foo()}, d['upstream_missing_dependency'])
+        self.assertEqual(set([Cat(num=1)]), d['already_done'])
+        self.assertEqual(set([Cat(num=0), Bar(num=1)]), d['completed'])
+        self.assertEqual(set([Cat(num=2)]), d['failed'])
+        self.assertEqual(set([Dog(), Bar(num=2), Foo()]), d['upstream_failure'])
+        self.assertEqual(set([Bar(num=0), Foo()]), d['upstream_missing_dependency'])
         self.assertFalse(d['run_by_other_worker'])
-        self.assertEqual({ExternalBar()}, d['still_pending_ext'])
+        self.assertEqual(set([ExternalBar()]), d['still_pending_ext'])
         s = self.summary()
         self.assertNotIn('\n\n\n', s)
 
@@ -599,7 +599,7 @@ class ExecutionSummaryTest(LuigiTestCase):
 
         self.run_task(Foo())
         d = self.summary_dict()
-        exp_set = {Bar(start + datetime.timedelta(days=i)) for i in range(10)}
+        exp_set = set(Bar(start + datetime.timedelta(days=i)) for i in range(10))
         exp_set.add(Foo())
         self.assertEqual(exp_set, d['completed'])
         s = self.summary()
@@ -624,7 +624,7 @@ class ExecutionSummaryTest(LuigiTestCase):
 
         self.run_task(Foo())
         d = self.summary_dict()
-        exp_set = {Bar(start + datetime.timedelta(minutes=i)) for i in range(300)}
+        exp_set = set(Bar(start + datetime.timedelta(minutes=i)) for i in range(300))
         exp_set.add(Foo())
         self.assertEqual(exp_set, d['completed'])
         s = self.summary()
@@ -643,7 +643,7 @@ class ExecutionSummaryTest(LuigiTestCase):
 
         self.run_task(Foo())
         d = self.summary_dict()
-        exp_set = {Bar(i) for i in range(11)}
+        exp_set = set(Bar(i) for i in range(11))
         exp_set.add(Foo())
         self.assertEqual(exp_set, d['completed'])
         s = self.summary()
@@ -664,7 +664,7 @@ class ExecutionSummaryTest(LuigiTestCase):
 
         self.run_task(Foo())
         d = self.summary_dict()
-        exp_set = {Bar(5, i, 25) for i in range(5)}
+        exp_set = set(Bar(5, i, 25) for i in range(5))
         exp_set.add(Foo())
         self.assertEqual(exp_set, d['completed'])
         s = self.summary()
@@ -684,7 +684,7 @@ class ExecutionSummaryTest(LuigiTestCase):
 
         self.run_task(Foo())
         d = self.summary_dict()
-        self.assertEqual({Foo(), Bar(num=0, num2=0), Bar(num=1, num2=2)}, d['completed'])
+        self.assertEqual(set([Foo(), Bar(num=0, num2=0), Bar(num=1, num2=2)]), d['completed'])
 
         summary = self.summary()
         result = summary.split('\n')
@@ -859,9 +859,9 @@ class ExecutionSummaryTest(LuigiTestCase):
 
         self.run_task(Foo())
         d = self.summary_dict()
-        self.assertEqual({ExternalBar(5)}, d['already_done'])
-        self.assertEqual({ExternalBar(i) for i in range(10) if i != 5}, d['still_pending_ext'])
-        self.assertEqual({Foo()}, d['upstream_missing_dependency'])
+        self.assertEqual(set([ExternalBar(5)]), d['already_done'])
+        self.assertEqual(set([ExternalBar(i) for i in range(10) if i != 5]), d['still_pending_ext'])
+        self.assertEqual(set([Foo()]), d['upstream_missing_dependency'])
         s = self.summary()
         self.assertIn('\n\nDid not run any tasks\nThis progress looks :| because there were missing external dependencies', s)
         self.assertNotIn('\n\n\n', s)
@@ -955,7 +955,7 @@ class ExecutionSummaryTest(LuigiTestCase):
 
         self.run_task(Foo())
         d = self.summary_dict()
-        exp_set = {Bar(start + datetime.timedelta(hours=i)) for i in range(10)}
+        exp_set = set(Bar(start + datetime.timedelta(hours=i)) for i in range(10))
         exp_set.add(Foo())
         self.assertEqual(exp_set, d['completed'])
         s = self.summary()
@@ -981,7 +981,7 @@ class ExecutionSummaryTest(LuigiTestCase):
 
         self.run_task(Foo())
         d = self.summary_dict()
-        exp_set = {Bar(start + datetime.timedelta(days=30*i)) for i in range(3)}
+        exp_set = set(Bar(start + datetime.timedelta(days=30*i)) for i in range(3))
         exp_set.add(Foo())
         self.assertEqual(exp_set, d['completed'])
         s = self.summary()
@@ -1105,8 +1105,8 @@ class ExecutionSummaryTest(LuigiTestCase):
         self.run_task(Foo())
         self.run_task(Foo())
         d = self.summary_dict()
-        self.assertEqual({Foo()}, d['completed'])
-        self.assertEqual({Foo()}, d['ever_failed'])
+        self.assertEqual(set([Foo()]), d['completed'])
+        self.assertEqual(set([Foo()]), d['ever_failed'])
         self.assertFalse(d['failed'])
         self.assertFalse(d['upstream_failure'])
         self.assertFalse(d['upstream_missing_dependency'])
