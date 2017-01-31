@@ -254,7 +254,7 @@ class RemoteFileSystem(luigi.target.FileSystem):
         self.conn.makedirs(directory)
 
         if atomic:
-            tmp_path = os.path.join(directory, 'luigi-tmp-{:09d}'.format(random.randrange(0, 1e10)))
+            tmp_path = os.path.join(directory, 'luigi-tmp-{0:09d}'.format(random.randrange(0, 1e10)))
         else:
             tmp_path = normpath
 

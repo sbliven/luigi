@@ -207,7 +207,7 @@ def _ranging_attributes(attributes, param_class):
     in_second = next_attributes.difference(attributes)
     if len(in_first) == 1 and len(in_second) == 1:
         for x in attributes:
-            if set(param_class.next_in_enumeration(x)) == in_second:
+            if set([param_class.next_in_enumeration(x)]) == in_second:
                 return next(iter(in_first)), x
     return None, None
 

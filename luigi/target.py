@@ -281,7 +281,7 @@ class FileSystemTarget(Target):
             def __init__(self):
                 num = random.randrange(0, 1e10)
                 slashless_path = self.target.path.rstrip('/').rstrip("\\")
-                self._temp_path = '{0}-luigi-tmp-{:010}{1}'.format(
+                self._temp_path = '{0}-luigi-tmp-{1:010}{2}'.format(
                     slashless_path,
                     num,
                     self.target._trailing_slash())
