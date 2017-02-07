@@ -110,6 +110,16 @@ logger.propagate = 0
 POLL_TIME = 5  # decided to hard-code rather than configure here
 
 
+_attached_packages = []
+
+def attach(*packages):
+    """
+    Attach a python package to the tarballs to make those packages available
+    on the sge cluster.
+    """
+    _attached_packages.extend(packages)
+
+
 def _parse_qstat_state(qstat_out, job_id):
     """Parse "state" column from `qstat` output for given job_id
 
@@ -249,7 +259,8 @@ class SGEJobTask(luigi.Task):
             # This is not necessary if luigi is importable from the cluster node
             logging.debug("Tarballing dependencies")
             # Grab luigi and the module containing the code to be run
-            packages = [luigi] + [__import__(self.__module__, None, None, 'dummy')]
+            packages = [luigi] + self.extra_modules() + list(_attached_packages)
+            packages.append(__import__(self.__module__, None, None, 'dummy'))
             create_packages_archive(packages, os.path.join(self.tmp_dir, "packages.tar"))
 
     def run(self):
@@ -265,6 +276,12 @@ class SGEJobTask(luigi.Task):
             # - Runner function loads the class from pickle
             # - Runner class untars the dependencies
             # - Runner function hits the button on the class's work() method
+
+    def extra_modules(self):
+        """Override this method to include additional packages in the tarball.
+        Should return a list of packages
+        """
+        return []
 
     def work(self):
         """Override this method, rather than ``run()``,  for your actual work."""
