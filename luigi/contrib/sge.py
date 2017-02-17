@@ -112,6 +112,7 @@ POLL_TIME = 5  # decided to hard-code rather than configure here
 
 _attached_packages = []
 
+
 def attach(*packages):
     """
     Attach a python package to the tarballs to make those packages available
@@ -152,7 +153,7 @@ def _parse_qsub_job_id(qsub_out):
     return int(qsub_out.split()[2])
 
 
-def _build_qsub_command(cmd, job_name, outfile, errfile, pe, n_cpu,qsub_options="-V -r y"):
+def _build_qsub_command(cmd, job_name, outfile, errfile, pe, n_cpu, qsub_options="-V -r y"):
     """
     Submit shell command to SGE queue via `qsub`
 
@@ -172,7 +173,7 @@ def _build_qsub_command(cmd, job_name, outfile, errfile, pe, n_cpu,qsub_options=
     qsub_template = """echo {cmd} | qsub -o ":{outfile}" -e ":{errfile}" -pe {pe} {n_cpu} -N {job_name} {qsub_options}"""
     return qsub_template.format(
         cmd=cmd, job_name=job_name, outfile=outfile, errfile=errfile,
-        pe=pe, n_cpu=n_cpu, qsub_options)
+        pe=pe, n_cpu=n_cpu, qsub_options=qsub_options)
 
 
 class SGEJobTask(luigi.Task):
