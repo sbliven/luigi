@@ -99,6 +99,11 @@ try:
     import cPickle as pickle
 except ImportError:
     import pickle
+try:
+    # python 3.3+
+    from shlex import quote
+except ImportError:
+    from pipes import quote
 
 import luigi
 from luigi.contrib.hadoop import create_packages_archive
@@ -170,10 +175,15 @@ def _build_qsub_command(cmd, job_name, outfile, errfile, pe, n_cpu, qsub_options
     Returns:
         str:    The bash command to execute to submit the job
     """
-    qsub_template = """echo {cmd} | qsub -o ":{outfile}" -e ":{errfile}" -pe {pe} {n_cpu} -N {job_name} {qsub_options}"""
+    qsub_template = """echo {cmd} | qsub -o :{outfile} -e :{errfile} -pe {pe} {n_cpu} -N {job_name} {qsub_options}"""
     return qsub_template.format(
-        cmd=cmd, job_name=job_name, outfile=outfile, errfile=errfile,
-        pe=pe, n_cpu=n_cpu, qsub_options=qsub_options)
+        cmd=quote(cmd),
+        job_name=quote(job_name),
+        outfile=quote(outfile),
+        errfile=quote(errfile),
+        pe=pe,
+        n_cpu=n_cpu,
+        qsub_options=qsub_options)
 
 
 class SGEJobTask(luigi.Task):
