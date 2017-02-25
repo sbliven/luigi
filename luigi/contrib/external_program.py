@@ -107,14 +107,14 @@ class ExternalProgramTask(luigi.Task):
             stderr = self._clean_output_file(tmp_stderr)
 
             if stdout:
-                logger.info('Program stdout:\n{}'.format(stdout))
+                logger.info('Program stdout:\n{0}'.format(stdout))
             if stderr:
                 if self.always_log_stderr or not success:
-                    logger.info('Program stderr:\n{}'.format(stderr))
+                    logger.info('Program stderr:\n{0}'.format(stderr))
 
             if not success:
                 raise ExternalProgramRunError(
-                    'Program failed with return code={}:'.format(proc.returncode),
+                    'Program failed with return code={0}:'.format(proc.returncode),
                     args, env=env, stdout=stdout, stderr=stderr)
         finally:
             tmp_stderr.close()
@@ -153,13 +153,13 @@ class ExternalProgramRunError(RuntimeError):
 
     def __str__(self):
         info = self.message
-        info += '\nCOMMAND: {}'.format(' '.join(self.args))
-        info += '\nSTDOUT: {}'.format(self.out or '[empty]')
-        info += '\nSTDERR: {}'.format(self.err or '[empty]')
+        info += '\nCOMMAND: {0}'.format(' '.join(self.args))
+        info += '\nSTDOUT: {0}'.format(self.out or '[empty]')
+        info += '\nSTDERR: {0}'.format(self.err or '[empty]')
         env_string = None
         if self.env:
-            env_string = ' '.join(['='.join([k, '\'{}\''.format(v)]) for k, v in self.env.items()])
-        info += '\nENVIRONMENT: {}'.format(env_string or '[empty]')
+            env_string = ' '.join(['='.join([k, '\'{0}\''.format(v)]) for k, v in self.env.items()])
+        info += '\nENVIRONMENT: {0}'.format(env_string or '[empty]')
         # reset terminal color in case the ENVIRONMENT changes colors
         info += '\033[m'
         return info
@@ -194,7 +194,7 @@ class ExternalPythonProgramTask(ExternalProgramTask):
 
         if self.virtualenv:
             # Make the same changes to the env that a normal venv/bin/activate script would
-            path = ':'.join(['{}/bin'.format(self.virtualenv), env.get('PATH', '')])
+            path = ':'.join(['{0}/bin'.format(self.virtualenv), env.get('PATH', '')])
             env.update({
                 'PATH': path,
                 'VIRTUAL_ENV': self.virtualenv

@@ -4,6 +4,11 @@ is internal to Luigi and not designed for use in other contexts.
 """
 
 import collections
+try:
+    from collections import OrderedDict, Counter
+except ImportError:
+    # Python 2.6 fallback
+    from backport_collections import OrderedDict, Counter
 from datetime import datetime
 import time
 
@@ -30,7 +35,7 @@ class batch_email(luigi.Config):
         default=True, description='Group items with the same error messages together')
 
 
-class ExplQueue(collections.OrderedDict):
+class ExplQueue(OrderedDict):
     def __init__(self, num_items):
         self.num_items = num_items
         super(ExplQueue, self).__init__()
@@ -55,9 +60,9 @@ def _plural_format(template, number, plural='s'):
 class BatchNotifier(object):
     def __init__(self, **kwargs):
         self._config = batch_email(**kwargs)
-        self._fail_counts = collections.defaultdict(collections.Counter)
-        self._disabled_counts = collections.defaultdict(collections.Counter)
-        self._scheduling_fail_counts = collections.defaultdict(collections.Counter)
+        self._fail_counts = collections.defaultdict(Counter)
+        self._disabled_counts = collections.defaultdict(Counter)
+        self._scheduling_fail_counts = collections.defaultdict(Counter)
         self._fail_expls = collections.defaultdict(_fail_queue(self._config.error_messages))
         self._update_next_send()
 
@@ -76,18 +81,18 @@ class BatchNotifier(object):
         elif self._config.batch_mode == 'family':
             return family
         elif self._config.batch_mode == 'unbatched_params':
-            param_str = six.u(', ').join(six.u('{}={}').format(*kv) for kv in six.iteritems(unbatched_args))
-            return six.u('{}({})').format(family, param_str)
+            param_str = six.u(', ').join(six.u('{0}={1}').format(*kv) for kv in six.iteritems(unbatched_args))
+            return six.u('{0}({1})').format(family, param_str)
         else:
-            raise ValueError('Unknown batch mode for batch notifier: {}'.format(
+            raise ValueError('Unknown batch mode for batch notifier: {0}'.format(
                 self._config.batch_mode))
 
     def _format_expl(self, expl):
         lines = expl.rstrip().split('\n')[-self._config.error_lines:]
         if self._email_format == 'html':
-            return six.u('<pre>{}</pre>').format('\n'.join(lines))
+            return six.u('<pre>{0}</pre>').format('\n'.join(lines))
         else:
-            return six.u('\n{}').format(six.u('\n').join(map(six.u('      {}').format, lines)))
+            return six.u('\n{0}').format(six.u('\n').join(map(six.u('      {0}').format, lines)))
 
     def _expl_body(self, expls):
         lines = [self._format_expl(expl) for expl in expls]
@@ -98,19 +103,19 @@ class BatchNotifier(object):
     def _format_task(self, task_tuple):
         task, failure_count, disable_count, scheduling_count = task_tuple
         counts = [
-            _plural_format('{} failure{}', failure_count),
-            _plural_format('{} disable{}', disable_count),
-            _plural_format('{} scheduling failure{}', scheduling_count),
+            _plural_format('{0} failure{1}', failure_count),
+            _plural_format('{0} disable{1}', disable_count),
+            _plural_format('{0} scheduling failure{1}', scheduling_count),
         ]
         count_str = six.u(', ').join(filter(None, counts))
-        return six.u('{} ({})').format(task, count_str)
+        return six.u('{0} ({1})').format(task, count_str)
 
     def _format_tasks(self, tasks):
         lines = map(self._format_task, sorted(tasks, key=self._expl_key))
         if self._email_format == 'html':
-            return six.u('<li>{}').format(six.u('\n<br>').join(lines))
+            return six.u('<li>{0}').format(six.u('\n<br>').join(lines))
         else:
-            return six.u('- {}').format(six.u('\n  ').join(lines))
+            return six.u('- {0}').format(six.u('\n  ').join(lines))
 
     def _owners(self, owners):
         return self._default_owner | set(owners)
@@ -154,10 +159,10 @@ class BatchNotifier(object):
         return self._expls_key(((expl,), None))
 
     def _email_body(self, fail_counts, disable_counts, scheduling_counts, fail_expls):
-        expls = {
-            (name, fail_count, disable_counts[name], scheduling_counts[name]): self._expl_body(fail_expls[name])
+        expls = dict(
+            ((name, fail_count, disable_counts[name], scheduling_counts[name]), self._expl_body(fail_expls[name]))
             for name, fail_count in six.iteritems(fail_counts)
-        }
+        )
         expl_groups = sorted(self._task_expl_groups(expls), key=self._expls_key)
         body_lines = []
         for tasks, msg in expl_groups:
@@ -165,7 +170,7 @@ class BatchNotifier(object):
             body_lines.append(msg)
         body = six.u('\n').join(filter(None, body_lines)).rstrip()
         if self._email_format == 'html':
-            return six.u('<ul>\n{}\n</ul>').format(body)
+            return six.u('<ul>\n{0}\n</ul>').format(body)
         else:
             return body
 
@@ -174,14 +179,14 @@ class BatchNotifier(object):
         num_disables = sum(six.itervalues(disable_counts))
         num_scheduling_failures = sum(six.itervalues(scheduling_counts))
         subject_parts = [
-            _plural_format('{} failure{}', num_failures),
-            _plural_format('{} disable{}', num_disables),
-            _plural_format('{} scheduling failure{}', num_scheduling_failures),
+            _plural_format('{0} failure{1}', num_failures),
+            _plural_format('{0} disable{1}', num_disables),
+            _plural_format('{0} scheduling failure{1}', num_scheduling_failures),
         ]
         subject_base = ', '.join(filter(None, subject_parts))
         if subject_base:
             prefix = '' if owner in self._default_owner else 'Your tasks have '
-            subject = 'Luigi: {}{} in the last {} minutes'.format(
+            subject = 'Luigi: {0}{1} in the last {2} minutes'.format(
                 prefix, subject_base, self._config.email_interval)
             email_body = self._email_body(fail_counts, disable_counts, scheduling_counts, fail_expls)
             send_email(subject, email_body, email().sender, (owner,))

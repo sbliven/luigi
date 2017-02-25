@@ -56,7 +56,7 @@ def getpcmd(pid):
             pass
 
     # Fallback instead of None, for e.g. Cygwin where -o is an "unknown option" for the ps command:
-    return '[PROCESS_WITH_PID={}]'.format(pid)
+    return '[PROCESS_WITH_PID={0}]'.format(pid)
 
 
 def get_info(pid_dir, my_pid=None):
@@ -95,26 +95,26 @@ def acquire_for(pid_dir, num_available=1, kill_signal=None):
 
     # Let variable "pids" be all pids who exist in the .pid-file who are still
     # about running the same command.
-    pids = {pid for pid in _read_pids_file(pid_file) if getpcmd(pid) == my_cmd}
+    pids = set(pid for pid in _read_pids_file(pid_file) if getpcmd(pid) == my_cmd)
 
     if kill_signal is not None:
         for pid in pids:
             os.kill(pid, kill_signal)
-        print('Sent kill signal to Pids: {}'.format(pids))
+        print('Sent kill signal to Pids: {0}'.format(pids))
         # We allow for the killer to progress, yet we don't want these to stack
         # up! So we only allow it once.
         num_available += 1
 
     if len(pids) >= num_available:
         # We are already running under a different pid
-        print('Pid(s) {} already running'.format(pids))
+        print('Pid(s) {0} already running'.format(pids))
         if kill_signal is not None:
             print('Note: There have (probably) been 1 other "--take-lock"'
                   ' process which continued to run! Probably no need to run'
                   ' this one as well.')
         return False
 
-    _write_pids_file(pid_file, pids | {my_pid})
+    _write_pids_file(pid_file, pids | set([my_pid]))
 
     return True
 
@@ -131,14 +131,14 @@ def _read_pids_file(pid_file):
     # an empty set()
     try:
         with open(pid_file, 'r') as f:
-            return {int(pid_str.strip()) for pid_str in f if pid_str.strip()}
+            return set(int(pid_str.strip()) for pid_str in f if pid_str.strip())
     except FileNotFoundError:
         return set()
 
 
 def _write_pids_file(pid_file, pids_set):
     with open(pid_file, 'w') as f:
-        f.writelines('{}\n'.format(pid) for pid in pids_set)
+        f.writelines('{0}\n'.format(pid) for pid in pids_set)
 
     # Make the .pid-file writable by all (when the os allows for it)
     if os.name != 'nt':

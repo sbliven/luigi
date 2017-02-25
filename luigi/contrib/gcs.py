@@ -221,7 +221,7 @@ class GCSClient(luigi.target.FileSystem):
 
         if self._is_root(obj):
             raise InvalidDeleteException(
-                'Cannot delete root of bucket at path {}'.format(path))
+                'Cannot delete root of bucket at path {0}'.format(path))
 
         if self._obj_exists(bucket, obj):
             self.client.objects().delete(bucket=bucket, object=obj).execute()
@@ -231,7 +231,7 @@ class GCSClient(luigi.target.FileSystem):
         if self.isdir(path):
             if not recursive:
                 raise InvalidDeleteException(
-                    'Path {} is a directory. Must use recursive delete'.format(path))
+                    'Path {0} is a directory. Must use recursive delete'.format(path))
 
             req = http.BatchHttpRequest()
             for it in self._list_iter(bucket, self._add_path_delimiter(obj)):
@@ -447,7 +447,7 @@ class GCSTarget(luigi.target.FileSystemTarget):
         elif mode == 'w':
             return self.format.pipe_writer(AtomicGCSFile(self.path, self.fs))
         else:
-            raise ValueError("Unsupported open mode '{}'".format(mode))
+            raise ValueError("Unsupported open mode '{0}'".format(mode))
 
 
 class GCSFlagTarget(GCSTarget):

@@ -227,10 +227,10 @@ def send_email_ses(sender, subject, message, recipients, image_png):
                                      Destinations=recipients,
                                      RawMessage={'Data': msg_root.as_string()})
 
-    logger.debug(("Message sent to SES.\nMessageId: {},\nRequestId: {},\n"
-                 "HTTPSStatusCode: {}").format(response['MessageId'],
-                                               response['ResponseMetadata']['RequestId'],
-                                               response['ResponseMetadata']['HTTPStatusCode']))
+    logger.debug(("Message sent to SES.\nMessageId: {0},\nRequestId: {1},\n"
+                 "HTTPSStatusCode: {2}").format(response['MessageId'],
+                                                response['ResponseMetadata']['RequestId'],
+                                                response['ResponseMetadata']['HTTPStatusCode']))
 
 
 def send_email_sendgrid(sender, subject, message, recipients, image_png):
@@ -283,10 +283,10 @@ def send_email_sns(sender, subject, message, topic_ARN, image_png):
 
     response = topic.publish(Subject=subject, Message=message)
 
-    logger.debug(("Message sent to SNS.\nMessageId: {},\nRequestId: {},\n"
-                 "HTTPSStatusCode: {}").format(response['MessageId'],
-                                               response['ResponseMetadata']['RequestId'],
-                                               response['ResponseMetadata']['HTTPStatusCode']))
+    logger.debug(("Message sent to SNS.\nMessageId: {0},\nRequestId: {1},\n"
+                 "HTTPSStatusCode: {2}").format(response['MessageId'],
+                                                response['ResponseMetadata']['RequestId'],
+                                                response['ResponseMetadata']['HTTPStatusCode']))
 
 
 def send_email(subject, message, sender, recipients, image_png=None):
@@ -359,7 +359,7 @@ def _prefix(subject):
     this prefix.
     """
     if email().prefix:
-        return "{} {}".format(email().prefix, subject)
+        return "{0} {1}".format(email().prefix, subject)
     else:
         return subject
 
@@ -408,7 +408,7 @@ def format_task_error(headline, task, command, formatted_exception=None):
         ''')
 
         str_params = task.to_str_params()
-        params = '\n'.join('<tr><th>{}</th><td>{}</td></tr>'.format(*items) for items in str_params.items())
+        params = '\n'.join('<tr><th>{0}</th><td>{1}</td></tr>'.format(*items) for items in str_params.items())
         body = msg_template.format(headline=headline, name=task.task_family, param_rows=params,
                                    command=command, traceback=formatted_exception)
     else:
@@ -428,7 +428,7 @@ def format_task_error(headline, task, command, formatted_exception=None):
 
         str_params = task.to_str_params()
         max_width = max([0] + [len(x) for x in str_params.keys()])
-        params = '\n'.join('  {:{width}}: {}'.format(*items, width=max_width) for items in str_params.items())
+        params = '\n'.join('  {0:{width}}: {1}'.format(*items, width=max_width) for items in str_params.items())
         body = msg_template.format(headline=headline, name=task.task_family, params=params,
                                    command=command, traceback=formatted_exception)
 

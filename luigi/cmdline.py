@@ -48,7 +48,7 @@ def luigid(argv=sys.argv[1:]):
                 if logging_conf is not None and not os.path.exists(logging_conf):
                     raise Exception("Error: Unable to locate specified logging configuration file!")
             if logging_conf is not None:
-                print("Configuring logging from file: {}".format(logging_conf))
+                print("Configuring logging from file: {0}".format(logging_conf))
                 logging.config.fileConfig(logging_conf)
             else:
                 print("Defaulting to basic logging; consider specifying logging_conf_file in luigi.cfg.")

@@ -15,7 +15,11 @@
 # limitations under the License.
 #
 
-from collections import OrderedDict
+try:
+    from collections import OrderedDict
+except ImportError:
+    # Python 2.6 fallback
+    from backport_collections import OrderedDict
 import os
 import tempfile
 from helpers import unittest

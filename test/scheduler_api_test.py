@@ -354,17 +354,17 @@ class SchedulerApiTest(unittest.TestCase):
         self.sch.add_task(worker=WORKER, task_id='A_1', family='A', params={'a': 1}, batchable=True)
         self.sch.add_task(worker=WORKER, task_id='A_2', family='A', params={'a': 2}, batchable=True)
         self.sch.get_work(worker=WORKER)
-        self.assertEqual({'A_1', 'A_2'}, set(self.sch.task_list('BATCH_RUNNING', '').keys()))
+        self.assertEqual(set(('A_1', 'A_2')), set(self.sch.task_list('BATCH_RUNNING', '').keys()))
 
     def test_downstream_jobs_from_batch_running_have_upstream_running_status(self):
         self.sch.add_task_batcher(worker=WORKER, task_family='A', batched_args=['a'])
         self.sch.add_task(worker=WORKER, task_id='A_1', family='A', params={'a': 1}, batchable=True)
         self.sch.add_task(worker=WORKER, task_id='A_2', family='A', params={'a': 2}, batchable=True)
         self.sch.get_work(worker=WORKER)
-        self.assertEqual({'A_1', 'A_2'}, set(self.sch.task_list('BATCH_RUNNING', '').keys()))
+        self.assertEqual(set(('A_1', 'A_2')), set(self.sch.task_list('BATCH_RUNNING', '').keys()))
 
         self.sch.add_task(worker=WORKER, task_id='B', deps=['A_1'])
-        self.assertEqual({'B'}, set(self.sch.task_list(PENDING, UPSTREAM_RUNNING).keys()))
+        self.assertEqual(set(['B']), set(self.sch.task_list(PENDING, UPSTREAM_RUNNING).keys()))
 
     def test_set_batch_runner_new_task(self):
         self.sch.add_task_batcher(worker=WORKER, task_family='A', batched_args=['a'])
@@ -377,11 +377,11 @@ class SchedulerApiTest(unittest.TestCase):
         self.sch.add_task(
             worker=WORKER, task_id='A_1_2', task_family='A', params={'a': '1,2'},
             batch_id=batch_id, status='RUNNING')
-        self.assertEqual({'A_1', 'A_2'}, set(self.sch.task_list('BATCH_RUNNING', '').keys()))
-        self.assertEqual({'A_1_2'}, set(self.sch.task_list('RUNNING', '').keys()))
+        self.assertEqual(set(['A_1', 'A_2']), set(self.sch.task_list('BATCH_RUNNING', '').keys()))
+        self.assertEqual(set(['A_1_2']), set(self.sch.task_list('RUNNING', '').keys()))
 
         self.sch.add_task(worker=WORKER, task_id='A_1_2', status=DONE)
-        self.assertEqual({'A_1', 'A_2', 'A_1_2'}, set(self.sch.task_list(DONE, '').keys()))
+        self.assertEqual(set(['A_1', 'A_2', 'A_1_2']), set(self.sch.task_list(DONE, '').keys()))
 
     def test_set_batch_runner_max(self):
         self.sch.add_task_batcher(worker=WORKER, task_family='A', batched_args=['a'])
@@ -394,11 +394,11 @@ class SchedulerApiTest(unittest.TestCase):
         self.sch.add_task(
             worker=WORKER, task_id='A_2', task_family='A', params={'a': '2'},
             batch_id=batch_id, status='RUNNING')
-        self.assertEqual({'A_1'}, set(self.sch.task_list('BATCH_RUNNING', '').keys()))
-        self.assertEqual({'A_2'}, set(self.sch.task_list('RUNNING', '').keys()))
+        self.assertEqual(set(['A_1']), set(self.sch.task_list('BATCH_RUNNING', '').keys()))
+        self.assertEqual(set(['A_2']), set(self.sch.task_list('RUNNING', '').keys()))
 
         self.sch.add_task(worker=WORKER, task_id='A_2', status=DONE)
-        self.assertEqual({'A_1', 'A_2'}, set(self.sch.task_list(DONE, '').keys()))
+        self.assertEqual(set(['A_1', 'A_2']), set(self.sch.task_list(DONE, '').keys()))
 
     def _start_simple_batch(self, use_max=False, mark_running=True):
         self.sch.add_task_batcher(worker=WORKER, task_family='A', batched_args=['a'])
@@ -422,8 +422,8 @@ class SchedulerApiTest(unittest.TestCase):
             worker=WORKER, task_id=task_id, task_family='A', params=params, batch_id=batch_id,
             status='RUNNING'
         )
-        self.assertEqual({task_id}, set(self.sch.task_list('RUNNING', '').keys()))
-        self.assertEqual({'A_1', 'A_2'}, set(self.sch.task_list(BATCH_RUNNING, '').keys()))
+        self.assertEqual(set([task_id]), set(self.sch.task_list('RUNNING', '').keys()))
+        self.assertEqual(set(['A_1', 'A_2']), set(self.sch.task_list(BATCH_RUNNING, '').keys()))
 
     def test_set_batch_runner_multiple_retries(self):
         batch_id, task_id, params = self._start_simple_batch()
@@ -432,14 +432,14 @@ class SchedulerApiTest(unittest.TestCase):
                 worker=WORKER, task_id=task_id, task_family='A', params=params, batch_id=batch_id,
                 status='RUNNING'
             )
-        self.assertEqual({task_id}, set(self.sch.task_list('RUNNING', '').keys()))
-        self.assertEqual({'A_1', 'A_2'}, set(self.sch.task_list(BATCH_RUNNING, '').keys()))
+        self.assertEqual(set([task_id]), set(self.sch.task_list('RUNNING', '').keys()))
+        self.assertEqual(set(['A_1', 'A_2']), set(self.sch.task_list(BATCH_RUNNING, '').keys()))
 
     def test_batch_fail(self):
         self._start_simple_batch()
         self.sch.add_task(worker=WORKER, task_id='A_1_2', status=FAILED, expl='bad failure')
 
-        task_ids = {'A_1', 'A_2'}
+        task_ids = set(['A_1', 'A_2'])
         self.assertEqual(task_ids, set(self.sch.task_list(FAILED, '').keys()))
         for task_id in task_ids:
             expl = self.sch.fetch_error(task_id)['error']
@@ -449,7 +449,7 @@ class SchedulerApiTest(unittest.TestCase):
         self._start_simple_batch(use_max=True)
         self.sch.add_task(worker=WORKER, task_id='A_2', status=FAILED, expl='bad max failure')
 
-        task_ids = {'A_1', 'A_2'}
+        task_ids = set(['A_1', 'A_2'])
         self.assertEqual(task_ids, set(self.sch.task_list(FAILED, '').keys()))
         for task_id in task_ids:
             response = self.sch.fetch_error(task_id)
@@ -460,21 +460,21 @@ class SchedulerApiTest(unittest.TestCase):
         self._start_simple_batch()
         self.setTime(601)
         self.sch.prune()
-        self.assertEqual({'A_1', 'A_2'}, set(self.sch.task_list(FAILED, '').keys()))
+        self.assertEqual(set(['A_1', 'A_2']), set(self.sch.task_list(FAILED, '').keys()))
 
     def test_batch_fail_max_from_dead_worker(self):
         self.setTime(1)
         self._start_simple_batch(use_max=True)
         self.setTime(601)
         self.sch.prune()
-        self.assertEqual({'A_1', 'A_2'}, set(self.sch.task_list(FAILED, '').keys()))
+        self.assertEqual(set(['A_1', 'A_2']), set(self.sch.task_list(FAILED, '').keys()))
 
     def test_batch_fail_from_dead_worker_without_running(self):
         self.setTime(1)
         self._start_simple_batch(mark_running=False)
         self.setTime(601)
         self.sch.prune()
-        self.assertEqual({'A_1', 'A_2'}, set(self.sch.task_list(FAILED, '').keys()))
+        self.assertEqual(set(['A_1', 'A_2']), set(self.sch.task_list(FAILED, '').keys()))
 
     def test_batch_update_status(self):
         self._start_simple_batch()
@@ -493,7 +493,7 @@ class SchedulerApiTest(unittest.TestCase):
     def test_finish_batch(self):
         self._start_simple_batch()
         self.sch.add_task(worker=WORKER, task_id='A_1_2', status=DONE)
-        self.assertEqual({'A_1', 'A_2', 'A_1_2'}, set(self.sch.task_list(DONE, '').keys()))
+        self.assertEqual(set(['A_1', 'A_2', 'A_1_2']), set(self.sch.task_list(DONE, '').keys()))
 
     def test_reschedule_max_batch(self):
         self.sch.add_task_batcher(worker=WORKER, task_family='A', batched_args=['a'])
@@ -510,8 +510,8 @@ class SchedulerApiTest(unittest.TestCase):
         self.sch.add_task(
             worker=WORKER, task_id='A_2', task_family='A', params={'a': '2'}, batchable=True)
 
-        self.assertEqual({'A_2'}, set(self.sch.task_list(PENDING, '').keys()))
-        self.assertEqual({'A_1'}, set(self.sch.task_list(DONE, '').keys()))
+        self.assertEqual(set(['A_2']), set(self.sch.task_list(PENDING, '').keys()))
+        self.assertEqual(set(['A_1']), set(self.sch.task_list(DONE, '').keys()))
 
     def test_resend_batch_on_get_work_retry(self):
         self.sch.add_task_batcher(worker=WORKER, task_family='A', batched_args=['a'])
@@ -557,7 +557,7 @@ class SchedulerApiTest(unittest.TestCase):
                           batchable=True)
         self.sch.add_task(worker=WORKER, task_id='A_2', family='A', params={'a': '2'},
                           batchable=True)
-        self.assertEqual({'A_1', 'A_2'}, set(self.sch.task_list(BATCH_RUNNING, '').keys()))
+        self.assertEqual(set(['A_1', 'A_2']), set(self.sch.task_list(BATCH_RUNNING, '').keys()))
 
     def test_rescheduled_batch_running_tasks_stay_batch_running_after_runner(self):
         self._start_simple_batch()
@@ -565,7 +565,7 @@ class SchedulerApiTest(unittest.TestCase):
                           batchable=True)
         self.sch.add_task(worker=WORKER, task_id='A_2', family='A', params={'a': '2'},
                           batchable=True)
-        self.assertEqual({'A_1', 'A_2'}, set(self.sch.task_list(BATCH_RUNNING, '').keys()))
+        self.assertEqual(set(['A_1', 'A_2']), set(self.sch.task_list(BATCH_RUNNING, '').keys()))
 
     def test_disabled_batch_running_tasks_stay_batch_running_before_runner(self):
         self.sch.add_task_batcher(worker=WORKER, task_family='A', batched_args=['a'])
@@ -579,7 +579,7 @@ class SchedulerApiTest(unittest.TestCase):
                           batchable=True, status=DISABLED)
         self.sch.add_task(worker=WORKER, task_id='A_2', family='A', params={'a': '2'},
                           batchable=True, status=DISABLED)
-        self.assertEqual({'A_1', 'A_2'}, set(self.sch.task_list(BATCH_RUNNING, '').keys()))
+        self.assertEqual(set(['A_1', 'A_2']), set(self.sch.task_list(BATCH_RUNNING, '').keys()))
 
     def test_get_work_returns_batch_task_id_list(self):
         self.sch.add_task_batcher(worker=WORKER, task_family='A', batched_args=['a'])
@@ -588,7 +588,7 @@ class SchedulerApiTest(unittest.TestCase):
         self.sch.add_task(worker=WORKER, task_id='A_2', family='A', params={'a': '2'},
                           batchable=True)
         response = self.sch.get_work(worker=WORKER)
-        self.assertEqual({'A_1', 'A_2'}, set(response['batch_task_ids']))
+        self.assertEqual(set(['A_1', 'A_2']), set(response['batch_task_ids']))
 
     def test_disabled_batch_running_tasks_stay_batch_running_after_runner(self):
         self._start_simple_batch()
@@ -596,7 +596,7 @@ class SchedulerApiTest(unittest.TestCase):
                           batchable=True, status=DISABLED)
         self.sch.add_task(worker=WORKER, task_id='A_2', family='A', params={'a': '2'},
                           batchable=True, status=DISABLED)
-        self.assertEqual({'A_1', 'A_2'}, set(self.sch.task_list(BATCH_RUNNING, '').keys()))
+        self.assertEqual(set(['A_1', 'A_2']), set(self.sch.task_list(BATCH_RUNNING, '').keys()))
 
     def test_do_not_overwrite_tracking_url_while_running(self):
         self.sch.add_task(task_id='A', worker='X', status='RUNNING', tracking_url='trackme')
@@ -1548,41 +1548,41 @@ class SchedulerApiTest(unittest.TestCase):
         task1 = self.add_task('MySpecialTask')
         task2 = self.add_task('OtherSpecialTask')
 
-        self.search_pending('Special', {task1, task2})
-        self.search_pending('Task', {task1, task2})
-        self.search_pending('My', {task1})
-        self.search_pending('Other', {task2})
+        self.search_pending('Special', set([task1, task2]))
+        self.search_pending('Task', set([task1, task2]))
+        self.search_pending('My', set([task1]))
+        self.search_pending('Other', set([task2]))
 
     def test_task_list_filter_by_search_long_family_name(self):
         task = self.add_task('TaskClassWithAVeryLongNameAndDistinctEndingUUDDLRLRAB')
-        self.search_pending('UUDDLRLRAB', {task})
+        self.search_pending('UUDDLRLRAB', set([task]))
 
     def test_task_list_filter_by_param_name(self):
         task1 = self.add_task('ClassA', day='2016-02-01')
         task2 = self.add_task('ClassB', hour='2016-02-01T12')
 
-        self.search_pending('day', {task1})
-        self.search_pending('hour', {task2})
+        self.search_pending('day', set([task1]))
+        self.search_pending('hour', set([task2]))
 
     def test_task_list_filter_by_long_param_name(self):
         task = self.add_task('ClassA', a_very_long_param_name_ending_with_uuddlrlrab='2016-02-01')
 
-        self.search_pending('uuddlrlrab', {task})
+        self.search_pending('uuddlrlrab', set([task]))
 
     def test_task_list_filter_by_param_value(self):
         task1 = self.add_task('ClassA', day='2016-02-01')
         task2 = self.add_task('ClassB', hour='2016-02-01T12')
 
-        self.search_pending('2016-02-01', {task1, task2})
-        self.search_pending('T12', {task2})
+        self.search_pending('2016-02-01', set([task1, task2]))
+        self.search_pending('T12', set([task2]))
 
     def test_task_list_filter_by_long_param_value(self):
         task = self.add_task('ClassA', param='a_very_long_param_value_ending_with_uuddlrlrab')
-        self.search_pending('uuddlrlrab', {task})
+        self.search_pending('uuddlrlrab', set([task]))
 
     def test_task_list_filter_by_param_name_value_pair(self):
         task = self.add_task('ClassA', param='value')
-        self.search_pending('param=value', {task})
+        self.search_pending('param=value', set([task]))
 
     def test_task_list_does_not_filter_by_task_id(self):
         task = self.add_task('Class')
@@ -1594,7 +1594,7 @@ class SchedulerApiTest(unittest.TestCase):
         self.add_task('ClassB', day='2016-02-01', num='5')
         self.add_task('ClassA', day='2016-02-01', val='5')
 
-        self.search_pending('ClassA 2016-02-01 num', {expected})
+        self.search_pending('ClassA 2016-02-01 num', set([expected]))
 
     def test_search_results_beyond_limit(self):
         sch = Scheduler(max_shown_tasks=3)
@@ -1817,8 +1817,8 @@ class SchedulerApiTest(unittest.TestCase):
         self.setTime(200000)
         self.sch.ping(worker='assistant')
         self.sch.prune()
-        self.assertEqual({'B'}, set(self.sch.task_list(RUNNING, '')))
-        self.assertEqual({'B'}, set(self.sch.task_list('', '')))
+        self.assertEqual(set(['B']), set(self.sch.task_list(RUNNING, '')))
+        self.assertEqual(set(['B']), set(self.sch.task_list('', '')))
 
     @mock.patch('luigi.scheduler.BatchNotifier')
     def test_batch_failure_emails(self, BatchNotifier):

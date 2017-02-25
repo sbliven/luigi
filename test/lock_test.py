@@ -119,8 +119,8 @@ class LockTest(unittest.TestCase):
     @mock.patch('luigi.lock.getpcmd')
     def test_cleans_old_pid_entries(self, getpcmd):
         assert self.pid > 10  # I've never seen so low pids so
-        SAME_ENTRIES = {1, 2, 3, 4, 5, self.pid}
-        ALL_ENTRIES = SAME_ENTRIES | {6, 7, 8, 9, 10}
+        SAME_ENTRIES = set((1, 2, 3, 4, 5, self.pid))
+        ALL_ENTRIES = SAME_ENTRIES | set((6, 7, 8, 9, 10))
 
         def side_effect(pid):
             if pid in SAME_ENTRIES:
@@ -138,4 +138,4 @@ class LockTest(unittest.TestCase):
         self.assertTrue(acquired)
 
         with open(self.pid_file, 'r') as f:
-            self.assertEqual({int(pid_str.strip()) for pid_str in f}, SAME_ENTRIES)
+            self.assertEqual(set(int(pid_str.strip()) for pid_str in f), SAME_ENTRIES)

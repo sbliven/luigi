@@ -20,7 +20,11 @@ from helpers import unittest, in_parse
 import luigi
 import luigi.interface
 import json
-import collections
+try:
+    from collections import OrderedDict
+except ImportError:
+    # Python 2.6 fallback
+    from backport_collections import OrderedDict
 
 
 class DictParameterTask(luigi.Task):
@@ -29,7 +33,7 @@ class DictParameterTask(luigi.Task):
 
 class DictParameterTest(unittest.TestCase):
 
-    _dict = collections.OrderedDict([('username', 'me'), ('password', 'secret')])
+    _dict = OrderedDict([('username', 'me'), ('password', 'secret')])
 
     def test_parse(self):
         d = luigi.DictParameter().parse(json.dumps(DictParameterTest._dict))

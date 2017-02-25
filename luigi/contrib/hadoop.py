@@ -463,7 +463,7 @@ class HadoopJobRunner(JobRunner):
                 luigi.contrib.s3.S3FlagTarget, luigi.contrib.gcs.GCSFlagTarget)
             if isinstance(job.output(), illegal_targets):
                 raise TypeError("end_job_with_atomic_move_dir is not supported"
-                                " for {}".format(illegal_targets))
+                                " for {0}".format(illegal_targets))
             output_hadoop = '{output}-temp-{time}'.format(
                 output=output_final,
                 time=datetime.datetime.now().isoformat().replace(':', '-'))
@@ -537,7 +537,7 @@ class HadoopJobRunner(JobRunner):
             luigi.contrib.gcs.GCSTarget)
         for target in luigi.task.flatten(job.input_hadoop()):
             if not isinstance(target, allowed_input_targets):
-                raise TypeError('target must one of: {}'.format(
+                raise TypeError('target must one of: {0}'.format(
                     allowed_input_targets))
             arglist += ['-input', target.path]
 
@@ -546,7 +546,7 @@ class HadoopJobRunner(JobRunner):
             luigi.contrib.s3.S3FlagTarget,
             luigi.contrib.gcs.GCSFlagTarget)
         if not isinstance(job.output(), allowed_output_targets):
-            raise TypeError('output must be one of: {}'.format(
+            raise TypeError('output must be one of: {0}'.format(
                 allowed_output_targets))
         arglist += ['-output', output_hadoop]
 

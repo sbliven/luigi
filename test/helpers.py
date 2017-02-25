@@ -103,7 +103,7 @@ class with_config(object):
             return old_sec
 
         all_sections = itertools.chain(old_dict.keys(), self.config.keys())
-        return {sec: get_section(sec) for sec in all_sections}
+        return dict((sec, get_section(sec)) for sec in all_sections)
 
     def __call__(self, fun):
         @functools.wraps(fun)
@@ -112,7 +112,7 @@ class with_config(object):
             orig_conf = luigi.configuration.LuigiConfigParser.instance()
             new_conf = luigi.configuration.LuigiConfigParser()
             luigi.configuration.LuigiConfigParser._instance = new_conf
-            orig_dict = {k: dict(orig_conf.items(k)) for k in orig_conf.sections()}
+            orig_dict = dict((k, dict(orig_conf.items(k))) for k in orig_conf.sections())
             new_dict = self._make_dict(orig_dict)
             for (section, settings) in six.iteritems(new_dict):
                 new_conf.add_section(section)

@@ -132,7 +132,7 @@ def task_id_str(task_family, params):
                              for p in (params[p] for p in sorted(params)[:TASK_ID_INCLUDE_PARAMS]))
     param_summary = TASK_ID_INVALID_CHAR_REGEX.sub('_', param_summary)
 
-    return '{}_{}_{}'.format(task_family, param_summary, param_hash[:TASK_ID_TRUNCATE_HASH])
+    return '{0}_{1}_{2}'.format(task_family, param_summary, param_hash[:TASK_ID_TRUNCATE_HASH])
 
 
 class BulkCompleteNotImplementedError(NotImplementedError):
@@ -340,7 +340,7 @@ class Task(object):
         if not cls.get_task_namespace():
             return cls.__name__
         else:
-            return "{}.{}".format(cls.get_task_namespace(), cls.__name__)
+            return "{0}.{1}".format(cls.get_task_namespace(), cls.__name__)
 
     @classmethod
     def get_params(cls):
@@ -516,7 +516,7 @@ class Task(object):
             if param_objs[param_name].significant:
                 repr_parts.append('%s=%s' % (param_name, param_objs[param_name].serialize(param_value)))
 
-        task_str = '{}({})'.format(self.get_task_family(), ', '.join(repr_parts))
+        task_str = '{0}({1})'.format(self.get_task_family(), ', '.join(repr_parts))
 
         return task_str
 
