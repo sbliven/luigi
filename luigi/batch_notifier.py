@@ -4,6 +4,11 @@ is internal to Luigi and not designed for use in other contexts.
 """
 
 import collections
+try:
+    from collections import OrderedDict, Counter
+except ImportError:
+    # Python 2.6 fallback
+    from backport_collections import OrderedDict, Counter
 from datetime import datetime
 import time
 
@@ -30,7 +35,7 @@ class batch_email(luigi.Config):
         default=True, description='Group items with the same error messages together')
 
 
-class ExplQueue(collections.OrderedDict):
+class ExplQueue(OrderedDict):
     def __init__(self, num_items):
         self.num_items = num_items
         super(ExplQueue, self).__init__()
@@ -55,9 +60,9 @@ def _plural_format(template, number, plural='s'):
 class BatchNotifier(object):
     def __init__(self, **kwargs):
         self._config = batch_email(**kwargs)
-        self._fail_counts = collections.defaultdict(collections.Counter)
-        self._disabled_counts = collections.defaultdict(collections.Counter)
-        self._scheduling_fail_counts = collections.defaultdict(collections.Counter)
+        self._fail_counts = collections.defaultdict(Counter)
+        self._disabled_counts = collections.defaultdict(Counter)
+        self._scheduling_fail_counts = collections.defaultdict(Counter)
         self._fail_expls = collections.defaultdict(_fail_queue(self._config.error_messages))
         self._update_next_send()
 

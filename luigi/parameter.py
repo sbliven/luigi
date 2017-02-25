@@ -25,7 +25,12 @@ import datetime
 import warnings
 import json
 from json import JSONEncoder
-from collections import OrderedDict, Mapping
+try:
+    from collections import OrderedDict
+except ImportError:
+    # Python 2.6 fallback
+    from backport_collections import OrderedDict
+from collections import Mapping
 import operator
 import functools
 from ast import literal_eval

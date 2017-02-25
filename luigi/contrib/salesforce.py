@@ -19,7 +19,11 @@ import abc
 import logging
 import warnings
 import xml.etree.ElementTree as ET
-from collections import OrderedDict
+try:
+    from collections import OrderedDict
+except ImportError:
+    # Python 2.6 fallback
+    from backport_collections import OrderedDict
 import re
 import csv
 import tempfile
