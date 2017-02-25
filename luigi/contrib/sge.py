@@ -99,6 +99,11 @@ try:
     import cPickle as pickle
 except ImportError:
     import pickle
+try:
+    # python 3.3+
+    from shlex import quote
+except ImportError:
+    from pipes import quote
 
 import luigi
 from luigi.contrib.hadoop import create_packages_archive
@@ -108,6 +113,17 @@ logger = logging.getLogger('luigi-interface')
 logger.propagate = 0
 
 POLL_TIME = 5  # decided to hard-code rather than configure here
+
+
+_attached_packages = []
+
+
+def attach(*packages):
+    """
+    Attach a python package to the tarballs to make those packages available
+    on the sge cluster.
+    """
+    _attached_packages.extend(packages)
 
 
 def _parse_qstat_state(qstat_out, job_id):
@@ -142,12 +158,32 @@ def _parse_qsub_job_id(qsub_out):
     return int(qsub_out.split()[2])
 
 
-def _build_qsub_command(cmd, job_name, outfile, errfile, pe, n_cpu):
-    """Submit shell command to SGE queue via `qsub`"""
-    qsub_template = """echo {cmd} | qsub -o ":{outfile}" -e ":{errfile}" -V -r y -pe {pe} {n_cpu} -N {job_name}"""
+def _build_qsub_command(cmd, job_name, outfile, errfile, pe, n_cpu, qsub_options="-V -r y"):
+    """
+    Submit shell command to SGE queue via `qsub`
+
+    Args:
+        cmd (str):      bash command to be executed on the compute node.
+        job_name (str): name to display in qstat
+        outfile (str):  log for standard output
+        errfile (str):  log for standard error
+        pe (str):       parallel environment name
+        n_cpu (int):    minimum number of CPUs
+        qsub_options (str): Additional arguments to pass to qsub. Defaults to
+                            "-V -r y" (preserve enVironmental variables; rerun jobs)
+
+    Returns:
+        str:    The bash command to execute to submit the job
+    """
+    qsub_template = """echo {cmd} | qsub -o :{outfile} -e :{errfile} -pe {pe} {n_cpu} -N {job_name} {qsub_options}"""
     return qsub_template.format(
-        cmd=cmd, job_name=job_name, outfile=outfile, errfile=errfile,
-        pe=pe, n_cpu=n_cpu)
+        cmd=quote(cmd),
+        job_name=quote(job_name),
+        outfile=quote(outfile),
+        errfile=quote(errfile),
+        pe=pe,
+        n_cpu=n_cpu,
+        qsub_options=qsub_options)
 
 
 class SGEJobTask(luigi.Task):
@@ -202,6 +238,10 @@ class SGEJobTask(luigi.Task):
     no_tarball = luigi.BoolParameter(
         significant=False,
         description="don't tarball (and extract) the luigi project files")
+    qsub_options = luigi.Parameter(
+        significant=False,
+        default="-V -r y",
+        description="advanced options to pass to qsub")
 
     def __init__(self, *args, **kwargs):
         super(SGEJobTask, self).__init__(*args, **kwargs)
@@ -249,7 +289,8 @@ class SGEJobTask(luigi.Task):
             # This is not necessary if luigi is importable from the cluster node
             logging.debug("Tarballing dependencies")
             # Grab luigi and the module containing the code to be run
-            packages = [luigi] + [__import__(self.__module__, None, None, 'dummy')]
+            packages = [luigi] + self.extra_modules() + list(_attached_packages)
+            packages.append(__import__(self.__module__, None, None, 'dummy'))
             create_packages_archive(packages, os.path.join(self.tmp_dir, "packages.tar"))
 
     def run(self):
@@ -265,6 +306,12 @@ class SGEJobTask(luigi.Task):
             # - Runner function loads the class from pickle
             # - Runner class untars the dependencies
             # - Runner function hits the button on the class's work() method
+
+    def extra_modules(self):
+        """Override this method to include additional packages in the tarball.
+        Should return a list of packages
+        """
+        return []
 
     def work(self):
         """Override this method, rather than ``run()``,  for your actual work."""
@@ -297,7 +344,7 @@ class SGEJobTask(luigi.Task):
         self.outfile = os.path.join(self.tmp_dir, 'job.out')
         self.errfile = os.path.join(self.tmp_dir, 'job.err')
         submit_cmd = _build_qsub_command(job_str, self.task_family, self.outfile,
-                                         self.errfile, self.parallel_env, self.n_cpu)
+                                         self.errfile, self.parallel_env, self.n_cpu, self.qsub_options)
         logger.debug('qsub command: \n' + submit_cmd)
 
         # Submit the job and grab job ID
