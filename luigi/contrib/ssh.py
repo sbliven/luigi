@@ -54,7 +54,12 @@ logger = logging.getLogger('luigi-interface')
 
 class RemoteCalledProcessError(subprocess.CalledProcessError):
     def __init__(self, returncode, command, host, output=None):
-        super(RemoteCalledProcessError, self).__init__(returncode, command, output)
+        try:
+            super(RemoteCalledProcessError, self).__init__(returncode, command, output)
+        except TypeError:
+            # python 2.6 lacks output param
+            super(RemoteCalledProcessError, self).__init__(returncode, command)
+            self.output = output
         self.host = host
 
     def __str__(self):
@@ -222,7 +227,7 @@ class RemoteFileSystem(luigi.target.FileSystem):
         try:
             self.remote_context.check_output(cmd)
         except subprocess.CalledProcessError as e:
-            if b'no such file' in e.output.lower():
+            if hasattr(e, "output") and b'no such file' in e.output.lower():
                 raise luigi.target.MissingParentDirectory()
             raise
 
