@@ -59,7 +59,7 @@ class Streams(luigi.Task):
         """
         with self.output().open('w') as output:
             for _ in range(1000):
-                output.write('{} {} {}\n'.format(
+                output.write('{0} {1} {2}\n'.format(
                     random.randint(0, 999),
                     random.randint(0, 999),
                     random.randint(0, 999)))
@@ -110,7 +110,7 @@ class AggregateArtists(luigi.Task):
         :return: the target output for this task.
         :rtype: object (:py:class:`luigi.target.Target`)
         """
-        return luigi.LocalTarget("data/artist_streams_{}.tsv".format(self.date_interval))
+        return luigi.LocalTarget("data/artist_streams_{0}.tsv".format(self.date_interval))
 
     def requires(self):
         """
@@ -133,7 +133,7 @@ class AggregateArtists(luigi.Task):
 
         with self.output().open('w') as out_file:
             for artist, count in six.iteritems(artist_count):
-                out_file.write('{}\t{}\n'.format(artist, count))
+                out_file.write('{0}\t{1}\n'.format(artist, count))
 
 
 class AggregateArtistsHadoop(luigi.contrib.hadoop.JobTask):
